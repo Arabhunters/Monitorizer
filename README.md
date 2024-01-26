@@ -50,7 +50,6 @@ settings:
     interval: 86400 # rescan all targets in the watch list every 24h
     options: -severity "medium,high,critical" -c 200 -rl 200
 ```
-For more information see: [docs/get_started.md](/docs/get_started.md)
 
 ```
 $ python monitor.py -w watch_targets.txt
