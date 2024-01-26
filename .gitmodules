@@ -1,0 +1,3 @@
+[submodule "modules/nuclei_fuzzing/fuzzing-templates"]
+	path = modules/nuclei_fuzzing/fuzzing-templates
+	url = https://github.com/projectdiscovery/fuzzing-templates

@@ -27,10 +27,13 @@ import needle
 class Monitorizer(ScanParser, Console):
     def __init__(self):
         self.chmod_tools = [
-            './thirdparty/amass/amass',
             './thirdparty/subfinder/subfinder',
             './thirdparty/masscan/masscan',
-            './modules/nuclei/bin/nuclei'
+            './modules/nuclei/bin/nuclei',
+            './thirdparty/puredns/puredns',
+            './thirdparty/subdominator/subdominator'
+            './thirdparty/gau/gau',
+            './thirdparty/waymore/waymore.py'
         ]
         self.create_dirs = ['reports', 'output']
         self.config = None
@@ -115,7 +118,9 @@ class Monitorizer(ScanParser, Console):
             self.log(f"Error occurred during executing :: {cmd} - {str(e)}")
             return False
 
-    def merge_reports(self, target, exclude=[]):
+    def merge_reports(self, target, exclude=None):
+        if exclude is None:
+            exclude = []
         result = []
         for path in glob.glob(f"reports/{target}_*"):
             for e in exclude:
@@ -132,7 +137,7 @@ class Monitorizer(ScanParser, Console):
                 domains.add(sub)
         return domains
 
-    def generate_report(self, target, scan, suffix=''):
+    def generate_report(self, target , scan, suffix=''):
         domains = self.merge_scans(scan)
         report = f'reports/{target}_{suffix}'
         open(report, 'w').write('\n'.join(domains))
@@ -155,6 +160,7 @@ class Monitorizer(ScanParser, Console):
         return pids
 
     def kill_by_cmd(self, cmd):
+        print("Killed By CMD")
         killed = []
         for pid in self.pids_by_cmd(cmd):
             os.kill(pid, signal.SIGKILL)  # aggressive but useful :)

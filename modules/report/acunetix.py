@@ -1,5 +1,6 @@
 # https://github.com/WazeHell/acunetix-python
 
+import contextlib
 import json
 
 import requests
@@ -62,11 +63,13 @@ class Acunetix(object):
         try:
             return json.loads(data)
         except Exception as e:
-            raise AXException("JSON_PARSING_ERROR", f"Json Parsing has occured: {e}")
+            raise AXException(
+                "JSON_PARSING_ERROR", f"Json Parsing has occured: {e}"
+            ) from e
 
     def __send_request(self, method="get", endpoint="", data=None):
         request_call = getattr(requests, method)
-        url = f'{self.host}{endpoint if endpoint else "/"}'
+        url = f'{self.host}{endpoint or "/"}'
         try:
             request = request_call(
                 url,
@@ -79,7 +82,7 @@ class Acunetix(object):
                 raise AXException("HTTP_ERROR", f"HTTP ERROR OCCURED: {request.text}")
             return self.__json_return(request.text)
         except Exception as e:
-            raise AXException("HTTP_ERROR", f"HTTP ERROR OCCURED: {e}")
+            raise AXException("HTTP_ERROR", f"HTTP ERROR OCCURED: {e}") from e
 
     def __is_connected(self):
         return 'Unauthorized' not in str(self.info())
@@ -113,12 +116,10 @@ class Acunetix(object):
 
     def delete_target(self, target_id):
         # print(f"deleting {target_id}")
-        try:
+        with contextlib.suppress(Exception):
             return self.__send_request(
                 method="delete", endpoint=f"{API_TARGET}/{target_id}"
             )
-        except:
-            pass
 
     def delete_all_targets(self):
         while True:

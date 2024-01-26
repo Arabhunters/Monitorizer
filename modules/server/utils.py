@@ -16,10 +16,10 @@ def is_alive(url):
     try:
         requests.head(f'https://{url}', timeout=25)
         return 1
-    except:
+    except Exception:
         try:
             requests.head(f'http://{url}', timeout=25)
             return 1
-        except:
+        except Exception:
             return 0
         return 0

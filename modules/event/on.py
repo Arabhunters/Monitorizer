@@ -1,15 +1,12 @@
-from monitorizer.ui.arguments import args
 from monitorizer.ui.cli import Console
 from modules.resolvers.dns import DNS
 from modules.report.all import Report
-
-from monitorizer.globals import local_metadata
 from modules.portscan.scanner import masscan
+import concurrent.futures
 from monitorizer.core import flags
-from modules.server import server
-import requests
+from modules.server import bot
 import time
-
+from threading import Thread
 
 class Events(Report, Console, DNS):
     def exit(self):
@@ -19,38 +16,56 @@ class Events(Report, Console, DNS):
         self.timeings = {target: time.monotonic()}
         self.info(f"Started full scan on {target}")
 
+
     def scan_finish(self,target):
         scan_time = round((time.monotonic() - self.timeings[target]) / 60, 3)
         self.info(f"Finished scanning {target}, full scan took: {scan_time} minute(s)")
 
-    def start(self):
-        server.run_server()
-        try:
-            public_ip = requests.get('https://ipinfo.io/json').json()['ip']
-        except Exception as e:
-            print(e)
-            public_ip = "0.0.0.0"
-        self.info(f"Started event server at http://{public_ip}:{args.port}/slack")
-        self.slack(f"Monitorizer framework v{local_metadata['version']['monitorizer']} started :tada:")
+    def start_monitor(self):
+        # await bot.bot.start(self.discord_token) #! IDLE problem
+        Thread(target=bot.bot.run, args=(self.discord_token,)).start() # start commands bot        
+        Thread(target=self.start_reporter_thread, args=()).start() # start reporter bot
+        self.info(f"Commands Bot & reporter bot Started")
+
+    def masscan_and_report(self, domain, foundby):
+        if flags.acunetix:
+            self.acunetix(domain)
+  
+        ports = masscan(domain)
+        ports_count = len(ports.split(','))  # Splitting the ports string and counting
+
+        if ports_count > 10:
+            template = f"{domain} by: {', '.join(foundby)} - [Annoying - maybe WAF]"
+        else:
+            template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
+    
+        return template
 
     def discover(self, new_domains, report_name):
+
         new_domains_filtered = {
             domain: foundby
             for domain, foundby in new_domains.items()
             if not self.nxdomain(domain) or domain.strip() == ''
         }
+
         if not new_domains_filtered:
             return
 
-        msg = f"Monitorizer Report ::: {report_name}\n"
-        msg += "[Github]: https://github.com/BitTheByte/Monitorizer\n\n"
-        msg += "```\n"
-        for domain, foundby in new_domains.items():
-            if flags.acunetix:
-                self.acunetix(domain)
-            ports = masscan(domain)
-            template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
-            self.done(f"Discoverd: {template}")
-            msg += template + "\n"
-        msg += "```"
-        self.slack(msg=msg)
+        msg = f"MonitorXYZ Report ::: {report_name}\n"
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_to_domain = {
+                executor.submit(self.masscan_and_report, domain, foundby): domain 
+                for domain, foundby in new_domains_filtered.items()
+            }
+
+            results = []
+            for future in concurrent.futures.as_completed(future_to_domain):
+                try:
+                    results.append(future.result())
+                except Exception as exc:
+                    print(f'{future_to_domain[future]} generated an exception: {exc}')
+
+            msg += '```\n' + '\n'.join(results) + '\n```'
+            self.send_discord_report(msg)

@@ -1,4 +1,4 @@
 class LocalReport():
-    def local(self, msg, path='results.txt'):
+    def local(self, msg, reporter, path='results.txt'):
         open(path, "a").write(msg + "\n")
-        self.log("There was a problem reporting to your slack local save is preformed at results.txt")
+        self.log(f"{reporter}: There was a problem reporting, local save is preformed at results.txt")

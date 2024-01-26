@@ -1,19 +1,34 @@
 report:
-  slack:
-    channel:
-    token:
+  discord:
+    channel: 
+    token: 
+
+  discord_reporter:
+    channel: 
+    token: 
 
   acunetix:
-    host:
-    port:
-    token:
+    host: 
+    port: 
+    token: 
 
 settings:
   nuclei:
     enable: true
-    interval: 86400 # rescan all targets in the watch list every 24h
-    options: -impact high
-
+    interval: 43200 # rescan all targets in the watch list every 12h
+    options: -severity "medium,high,critical" -c 200 -rl 200
+  # nuclei_fuzzing:
+  #   enable: true
+  #   interval: 86400 # rescan all targets in the watch list every 12h
+  #   options: -c 300 -rl 200
+  dirsearch:
+    enable: true
+    interval: 43200 # rescan all targets in the watch list every 12h
+    options: -w ./wordlists/mylist.txt -e 'php,asp,aspx,jsp,html,js' -x '400,403,404,301,307' -q --format=simple
+  subdominator:
+    enable: true
+    interval: 43200 # rescan all targets in the watch list every 12h
+    options: -eu --validate
   scan:
     timeout: 0 # global timeout for ALL tools in SECONDS, 0 = unlimited
 
@@ -57,3 +72,22 @@ aiodnsbrute:
   formats:
     threads: 1024
     wordlist: wordlists/mix.txt
+
+puredns:
+  cmd: ./thirdparty/puredns/puredns bruteforce {wordlist} {target} -w {output} -r {resolvers} 
+  health: ./thirdparty/puredns/puredns -v
+  formats:
+     wordlist: wordlists/subdomains-top1mil.txt
+     resolvers: thirdparty/Fresh-Resolvers/resolvers.txt
+
+# waymore:
+#   cmd: python3 thirdparty/waymore/waymore.py -i {target} {options} | urless |anew {output}
+#   health: python3 thirdparty/waymore/waymore.py --version
+#   formats:
+#      options: -mode U -p 2
+
+# gau:
+#   cmd: ./thirdparty/gau/gau --o {output} {options} {target} | urless |anew {output}
+#   health: ./thirdparty/gau/gau --version
+#   formats:
+#      options: --subs --blacklist "css,ico,gif,jpeg,png,bmp,svg,avi,mpg,mpeg,mp3,m3u8,woff,woff2,ttf,eot,mp4,wav,mov,wmv,doc,xls,pdf,zip,tar,7z,rar,tgz,gz,exe,rtp,jpg"

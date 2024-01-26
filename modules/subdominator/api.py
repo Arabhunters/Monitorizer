@@ -1,8 +1,9 @@
+import contextlib
 from modules.report.all import Report
 from monitorizer.core.main import Monitorizer
 from modules.server.utils import reload_watchlist
 from monitorizer.ui.cli import Console
-from modules.nuclei.templates import * 
+from modules.subdominator.templates import *
 from datetime import datetime
 from colorama import Fore
 import threading
@@ -15,23 +16,23 @@ import time
 
 
 
-class Nuclei(Report, Monitorizer, Console):
+class Subdominator(Report, Monitorizer, Console):
     def __init__(self):
         super().__init__()
     
     def resolve(self, host):
         try:
-            url = f"https://{host}"
-            requests.get(url, verify=False, timeout=30)
-            return url
-        except:
-            try:
-                url = f"http://{host}"
-                requests.get(url, verify=False, timeout=30)
-                return url
-            except:
-                pass
+            return self._extracted_from_resolve_3('https://', host)
+        except Exception:
+            with contextlib.suppress(Exception):
+                return self._extracted_from_resolve_3('http://', host)
         return None
+
+    # TODO Rename this here and in `resolve`
+    def _extracted_from_resolve_3(self, arg0, host):
+        url = f"{arg0}{host}"
+        requests.get(url, verify=False, timeout=30)
+        return url
 
     def same(self, line1, line2):
         if line1 == '' or line2 == '':
@@ -58,7 +59,7 @@ class Nuclei(Report, Monitorizer, Console):
         return new
 
     def scan(self):
-        self.log("started new nuclei scanning thread")
+        self.log("Started new subdominator scanning thread")
 
         watchlist  = reload_watchlist()
         subdomains = []
@@ -74,8 +75,8 @@ class Nuclei(Report, Monitorizer, Console):
         reports_dir = 'reports'
         if not os.path.exists(reports_dir):
             os.makedirs(reports_dir)
-        nuclei_input = f"output/nuclei_input_{report_name}"
-        nuclei_output = f"reports/nuclei_{report_name}"
+        subdominator_input = f"output/subdominator_input_{report_name}"
+        subdominator_output = f"reports/subdominator_{report_name}"
 
         resolved_subs = set([])
 
@@ -84,25 +85,25 @@ class Nuclei(Report, Monitorizer, Console):
                 continue
             resolved_subs.add(cp._return)
 
-        open(nuclei_input, 'w').write("\n".join(resolved_subs))
+        open(subdominator_input, 'w').write("\n".join(resolved_subs))
 
 
-        cmd = f"./modules/nuclei/bin/nuclei -no-color -silent -t modules/nuclei/templates -l {nuclei_input} -o {nuclei_output} {self.nuclei_options}"
+        cmd = f"./thirdparty/subdominator/subdominator -l {subdominator_input} -o {subdominator_output} {self.subdominator_options}"
         subprocess.check_output(cmd, shell=True)
 
 
-        old_report = self.merge_reports("nuclei", exclude=[report_name])
+        old_report = self.merge_reports("subdominator", exclude=[report_name])
         new_report = []
         result     = None
         
-        if os.path.isfile(nuclei_output):
-            new_report = open(nuclei_output, 'r').read().split("\n")
+        if os.path.isfile(subdominator_output):
+            new_report = open(subdominator_output, 'r').read().split("\n")
             result     = '\n'.join( self.compare(old_report, new_report) )
 
         if new_report and result.strip():
             self.send_discord_report(report_template.format(scan_result=result))
 
-        self.log("nuclei scanning thread finished")
+        self.log("subdominator scanning thread finished")
     
 
     def start_continuous_scanner(self):
@@ -110,13 +111,13 @@ class Nuclei(Report, Monitorizer, Console):
             while 1:
                 self.scan()
 
-                if self.nuclei_interval is None:
-                    self.nuclei_interval = 24*60*60
+                if self.subdominator_interval is None:
+                    self.subdominator_interval = 24*60*60
 
-                self.log(f"nuclei scanning thread is sleeping for {self.nuclei_interval / 60 / 60} hour(s)")
-                time.sleep(self.nuclei_interval)
+                self.log(f"Subdominator scanning thread is sleeping for {self.subdominator_interval / 60 / 60} hour(s)")
+                time.sleep(self.subdominator_interval)
 
-        if self.nuclei_enable == True:
+        if self.subdominator_enable == True:
             self.info(f"Continuous scanner is {Fore.GREEN}Enabled")
             thread = threading.Thread(target=_continuous)
             thread.name = "ScannerThread"
