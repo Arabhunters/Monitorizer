@@ -1,3 +1,12 @@
 [submodule "modules/nuclei_fuzzing/fuzzing-templates"]
 	path = modules/nuclei_fuzzing/fuzzing-templates
 	url = https://github.com/projectdiscovery/fuzzing-templates
+[submodule "modules/nuclei/templates"]
+	path = modules/nuclei/templates
+	url = https://github.com/projectdiscovery/nuclei-templates
+[submodule "thirdparty/dirsearch"]
+	path = thirdparty/dirsearch
+	url = https://github.com/maurosoria/dirsearch
+[submodule "thirdparty/waymore"]
+	path = thirdparty/waymore
+	url = https://github.com/xnl-h4ck3r/waymore

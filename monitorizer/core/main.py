@@ -29,7 +29,7 @@ class Monitorizer(ScanParser, Console):
         self.chmod_tools = [
             './thirdparty/subfinder/subfinder',
             './thirdparty/masscan/masscan',
-            './modules/nuclei/bin/nuclei',
+            './thidrparty/nuclei/nuclei',
             './thirdparty/puredns/puredns',
             './thirdparty/subdominator/subdominator'
             './thirdparty/gau/gau',

@@ -1,36 +1,22 @@
 # Monitorizer
 
-<p align="center">
-    <a href="https://twitter.com/BitTheByte">
-      <img src="https://i.ibb.co/9pYWyKR/68747470733a2f2f692e6962622e636f2f775367634b66782f417274626f6172642d312e706e67.png" width="500">
-    </a>
-    <h3 align="center">The ultimate subdomain monitorization framework</h3>
-</p>
-
 Subdomain monitoring framework inspired by [subalert](https://github.com/yassineaboukir/sublert) project
 
 # Scanners integration
 - Nuclei integration
-
-  - This integration is enabled by default with no action from the user however if you wish to disable it or modify it's options edit `config/default.yaml`
-
-  - An always running instance of `projectdiscovery/nuclei` that will scan ALL (not just the newly found) subdomains from targets in the watch list - only modify the watch list from slack commands e.g `@monitorizer add example.com`
-
-  - Keep in mind you're responsible for updating your local copy of nuclei templates at `modules/nuclei` from https://github.com/projectdiscovery/nuclei-templates
-  
-
-
 - Acunetix integration
-  - This integration is disabled by default you must send `@monitorizer acunetix enable` to your running monitorizer instance to enable this integration
-
+  - This integration is disabled by default you must send `/monitor acunetix enable` to your running monitorizer instance to enable this integration
   - You need to have your own Acunetix instance 
-
   - On a newly discovered subdomain this integration will start new Acunetix scan 
+- Dirsearch integration
 
 # Setting up the environment
 You need:
 - Python  >= 3.6 ( python 2 is not supported )
 - Linux server e.g(Amanzon EC2) [64bit]
+- at least 16gb ram.
+Because the tool take a lot of resources because the async and the multithreading
+![Htop](image-1.png)
 
 Before we start you need to install the requirements
 ```
@@ -40,14 +26,18 @@ After installing the requirements now you're ready to go
 
 # Configuration
 
-This tool requires a slack workspace to report the findings. Additionally you can use the included acunetix integration to scan the newly discoverd domains
+This tool requires a discord bot to report the findings. Additionally you can use the included acunetix integration to scan the newly discoverd domains
 
 You need to edit the `config/default.yaml` 
 ```yaml
 report:
-  slack: # required
-    channel: CM8XXXXXX
-    token: xoxb-XXXXXXXXXX-ZZZZZZZZZZ-YYYYYYYYYYYYYY
+  discord: # this is the commander bot for pass the commands to the tool
+    channel: [Channel ID]
+    token: [Bot Token]
+
+  discord_reporter: # this is the reporter bot
+    channel: [Channel ID]
+    token: [Bot Token]
   
   acunetix: # optional
       token: 63c19a6da79816b21429e5bb262daed863c19a6da79816b21429e5bb262daed8
@@ -58,17 +48,21 @@ settings:
   nuclei:
     enable: true
     interval: 86400 # rescan all targets in the watch list every 24h
-    options: -impact high
+    options: -severity "medium,high,critical" -c 200 -rl 200
 ```
 For more information see: [docs/get_started.md](/docs/get_started.md)
 
 ```
 $ python monitor.py -w watch_targets.txt
 ```
-if everything is configured currectly to should see this message on your slack channel
-![](https://i.ibb.co/ZMjvTsM/image.png)   
+if everything is configured currectly to should see this message on your discord channel:
+![Alt text](image.png)
 
 Monitorizer supports more than one subdomain enumeration tool to achieve the best result
+
+but those are useless in this year I think because this as @xElkomy I don't want all of this I just add subfinder and puredns
+
+## The old scanners
 ```python
 
 scanners = [
@@ -81,6 +75,16 @@ scanners = [
 ]
 
 ```
+
+## The New Scanners
+
+```python
+scanners = (
+    "subfinder",
+    "puredns"
+)
+```
+
 command lines can be found at `config/default.yaml`
 It is also recommended to add your API keys in the `config/thirdparty/*`
 
@@ -95,34 +99,7 @@ $ cd Monitorizer
 $ screen -dmS monitorizer bash -c 'python3 monitor.py -w targets.txt'
 ```
 
-# Slack Commands
-Monitorizer supports slack commands by mentioning the bot   
-
-![](https://i.ibb.co/NFL2N7r/image.png)  
-  
-To Enable Slack commands you have to enable [Event Subscriptions](https://api.slack.com/events-api) and set the [Request URL] to http://your_ip:6500/slack
-
-
-| Command    	| Description                                               	| Usage                                                                        	|
-|------------	|-----------------------------------------------------------	|------------------------------------------------------------------------------	|
-| list       	| Lists all targets                                         	| @monitorizer list                                                             	|
-| add        	| Adds new target                                           	| @monitorizer add target.com or @monitorizer add target1.com, target2.com       	|
-| remove     	| Remove targets                                            	| @monitorizer remove target.com or @monitorizer remove target1.com, target2.com 	|
-| ping       	| Health check for the server                               	| @monitorizer ping                                                             	|
-| status     	| Prints the current status                                 	| @monitorizer status                                                           	|
-| concurrent 	| Set/Get number of concurrent scanners                     	| @monitorizer concurrent or @monitorizer concurrent {number}                    	|
-| acunetix   	| Enabled/Disable sending new discoverd targets to acunetix 	| @monitorizer acunetix enable or @monitorizer acunetix disable                  	|
-| freq       	| Set/Get scan frequency (in hours)                         	| @monitorizer freq or @monitorizer freq {number}                                	|                   
-
-
 # FAQ
 1) Scanning may hang on some targets for a long time
     - Try running the tool with `-d` flag to debug the problem
     - Edit the `timeout` flag at `config/default.yaml` to your desired time in **seconds**
-
-2) Slack's bot app don't respond to my commands
-    - Check your slack bot token 
-    - Reconfigure the tool using the [docs](/docs/get_started.md)
-
-# TODO
-Full todo list is at https://github.com/BitTheByte/Monitorizer/projects/1

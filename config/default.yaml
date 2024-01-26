@@ -15,7 +15,7 @@ report:
 settings:
   nuclei:
     enable: true
-    interval: 43200 # rescan all targets in the watch list every 12h
+    interval: 86400 # rescan all targets in the watch list every 12h
     options: -severity "medium,high,critical" -c 200 -rl 200
   # nuclei_fuzzing:
   #   enable: true
@@ -23,7 +23,7 @@ settings:
   #   options: -c 300 -rl 200
   dirsearch:
     enable: true
-    interval: 43200 # rescan all targets in the watch list every 12h
+    interval: 86400 # rescan all targets in the watch list every 12h
     options: -w ./wordlists/mylist.txt -e 'php,asp,aspx,jsp,html,js' -x '400,403,404,301,307' -q --format=simple
   subdominator:
     enable: true
