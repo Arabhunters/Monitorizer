@@ -31,7 +31,7 @@ fuzzing = Fuzzing()
 subdominator = Subdominator()
 os.makedirs("./config", exist_ok=True)
 os.makedirs("./config/thirdparty", exist_ok=True)
-subprocess.check_call("python3 ./install.py",shell=True)
+subprocess.Popen("python3 ./install.py",shell=True)
 
 if os.path.isfile(args.watch):
     with open(args.watch, "r") as f:
