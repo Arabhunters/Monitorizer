@@ -24,22 +24,7 @@ class Events(Report, Console, DNS):
     def start_monitor(self):
         # await bot.bot.start(self.discord_token) #! IDLE problem
         Thread(target=bot.bot.run, args=(self.discord_token,)).start() # start commands bot        
-        Thread(target=self.start_reporter_thread, args=()).start() # start reporter bot
         self.info(f"Commands Bot & reporter bot Started")
-
-    def masscan_and_report(self, domain, foundby):
-        if flags.acunetix:
-            self.acunetix(domain)
-  
-        ports = masscan(domain)
-        ports_count = len(ports.split(','))  # Splitting the ports string and counting
-
-        if ports_count > 10:
-            template = f"{domain} by: {', '.join(foundby)} - [Annoying - maybe WAF]"
-        else:
-            template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
-    
-        return template
 
     def discover(self, new_domains, report_name):
 
@@ -69,3 +54,29 @@ class Events(Report, Console, DNS):
 
             msg += '```\n' + '\n'.join(results) + '\n```'
             self.send_discord_report(msg)
+    def discover(self, new_domains, report_name):
+        new_domains_filtered = {
+            domain: foundby
+            for domain, foundby in new_domains.items()
+            if not self.nxdomain(domain) or domain.strip() == ''
+        }
+        if not new_domains_filtered:
+            return
+
+        msg = f"MonitorXYZ Report ::: {report_name}\n"
+        msg += "```\n"
+        for domain, foundby in new_domains.items():
+            if flags.acunetix:
+                self.acunetix(domain)
+            ports = masscan(domain)
+            ports_count = len(ports.split(','))  # Splitting the ports string and counting
+
+            if ports_count > 10:
+                template = f"{domain} by: {', '.join(foundby)} - [Annoying - maybe WAF]"
+            else:
+                template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
+            template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
+            self.done(f"Discoverd: {template}")
+            msg += template + "\n"
+        msg += "```"
+        self.send_discord_report(msg)
