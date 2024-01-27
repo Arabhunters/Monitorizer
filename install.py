@@ -34,6 +34,19 @@ def unzip_and_rename_nuclei(zip_path, target_dir):
                 new_file = os.path.join(target_dir, 'nuclei')
                 os.rename(old_file, new_file)
                 print(f"Renamed {file} to nuclei")
+
+def unzip_and_rename_subfinder(zip_path, target_dir):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(target_dir)
+        for file in zip_ref.namelist():
+            if file.endswith('/'):  # Skip directories
+                continue
+            if 'nuclei' in file:  # Adjust the condition as per your requirement
+                old_file = os.path.join(target_dir, file)
+                new_file = os.path.join(target_dir, 'subfinder')
+                os.rename(old_file, new_file)
+                print(f"Renamed {file} to subfinder")
+
 def extract_tgz(tgz_path, target_dir):
     with tarfile.open(tgz_path, 'r:gz') as tar:
         tar.extractall(path=target_dir)
@@ -69,6 +82,7 @@ def main():
         {"repo": "Stratus-Security/Subdominator", "asset_name_pattern": "Subdominator$", "target_dir": "./thirdparty/subdominator"},
         {"repo": "projectdiscovery/nuclei", "asset_name_pattern": "nuclei_.*_linux_amd64.zip", "target_dir": "./thirdparty/nuclei", "post_process": unzip_and_rename_nuclei},
         {"repo": "d3mondev/puredns", "asset_name_pattern": "puredns-Linux-amd64.tgz", "target_dir": "./thirdparty/puredns", "post_process": extract_tgz},
+        {"repo": "projectdiscovery/subfinder", "asset_name_pattern": "subfinder_.*_linux_amd64.zip", "target_dir": "./thirdparty/subfinder", "post_process": unzip_and_rename_subfinder},
         ]
 
     for repository in repositories:
