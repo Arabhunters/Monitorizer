@@ -10,3 +10,6 @@
 [submodule "thirdparty/waymore"]
 	path = thirdparty/waymore
 	url = https://github.com/xnl-h4ck3r/waymore
+[submodule "thirdparty/Fresh-Resolvers"]
+	path = thirdparty/Fresh-Resolvers
+	url = https://github.com/proabiral/Fresh-Resolvers
