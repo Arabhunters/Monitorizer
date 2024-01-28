@@ -14,9 +14,6 @@ Subdomain monitoring framework inspired by [subalert](https://github.com/yassine
 You need:
 - Python  >= 3.6 ( python 2 is not supported )
 - Linux server e.g(Amanzon EC2) [64bit]
-- at least 16gb ram.
-Because the tool take a lot of resources because the async and the multithreading
-![Htop](image-1.png)
 
 Before we start you need to install the requirements
 ```
