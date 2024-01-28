@@ -31,7 +31,9 @@ fuzzing = Fuzzing()
 subdominator = Subdominator()
 os.makedirs("./config", exist_ok=True)
 os.makedirs("./config/thirdparty", exist_ok=True)
-subprocess.Popen("python3 ./install.py",shell=True)
+# subprocess.Popen("python3 ./install.py",shell=False)
+subprocess.run(["python3", "./install.py"], check=True)
+subprocess.run(["git", "submodule", "update", "--init", "--recursive"], check=True)
 
 if os.path.isfile(args.watch):
     with open(args.watch, "r") as f:
