@@ -32,8 +32,34 @@ subdominator = Subdominator()
 os.makedirs("./config", exist_ok=True)
 os.makedirs("./config/thirdparty", exist_ok=True)
 # subprocess.Popen("python3 ./install.py",shell=False)
-subprocess.run(["python3", "./install.py"], check=True)
-subprocess.run(["git", "submodule", "update", "--init", "--recursive"], check=True)
+
+try:
+    # Run the first command
+    install_tools = subprocess.run(
+        ["python3", "./install.py"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    print(f"Installation output: {install_tools.stdout.decode()}")
+
+    # Run the second command
+    git_submodules = subprocess.run(
+        ["git", "submodule", "update", "--init", "--recursive"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    print(f"Git submodule update output: {git_submodules.stdout.decode()}")
+
+except subprocess.CalledProcessError as e:
+    # If either command fails, print an error message and exit with a non-zero status code
+    print(f"Error occurred: {e}")
+    if e.stdout:
+        print(f"Standard Output: {e.stdout.decode()}")
+    if e.stderr:
+        print(f"Standard Error: {e.stderr.decode()}")
+
 
 if os.path.isfile(args.watch):
     with open(args.watch, "r") as f:
