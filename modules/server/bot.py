@@ -1,27 +1,61 @@
-# Global imports
+import asyncio
 import discord
-
+import os
+from discord.ext import commands
+from monitorizer.core.config import Config
+from monitorizer.ui.arguments import args
 # Local imports
 from monitorizer.globals import local_metadata, metadata_github
-from monitorizer.ui.arguments import args
 from monitorizer.core import flags
-from modules.server.utils import *
-from modules.server import templates
+from modules.report.utils import reload_watchlist, rewrite_watchlist, is_alive
+from modules.report import templates
 
-COMMANDS_PREFIX = "/"
+config = Config()
 watchlist = reload_watchlist()
-COMMANDS_PREFIX = "/"
-intents = discord.Intents.all()
 
-# Create instance of Bot
-bot = discord.Bot(intents=intents)
+class MonitorizerBot(discord.Bot):
+    def __init__(self, intents, *args, **kwargs):
+        super().__init__(intents=intents, *args, **kwargs)
+    # async def start_reporter(self):
+    #     intents = discord.Intents.all()
+    #     self.client = discord.Client(intents=intents)
+    def send_discord_report(self, msg):
+        async def send_message():
+            try:
+                channel = self.client.get_channel(self.discord_reporter_channel)
+                if not channel:
+                    self.info("Channel not found")
+                    raise RuntimeError(f"Could not find Discord channel with ID: {self.discord_reporter_channel}")
+            except Exception as e:
+                # Replace with your logging method
+                self.info(str(e))
+                return
+
+            for _ in range(10):
+                try:
+                    with open('report.txt', 'w') as f:
+                        f.write(msg)
+                    await channel.send(file=discord.File('./report.txt'))
+                    os.remove('report.txt')
+                    # send the message as a file 
+                    return
+                except discord.HTTPException as e:
+                    # Replace with your logging method
+                    self.info(str(e))
+                    await asyncio.sleep(30)
+            
+            # Assuming this is a method for local logging
+            self.local(msg, reporter="discord")
+            # loop = asyncio.new_event_loop() 
+            send_fut = asyncio.run_coroutine_threadsafe(send_message(),self.client.loop)
+            # Wait for the coroutine to finish
+            send_fut.result()
+            self.info(f"Discord Report Sent")
+
+
+# Bot initialization
+bot = MonitorizerBot(command_prefix="/", intents=discord.Intents.default(), discord_channel=config.discord_channel)
 commands_group = bot.create_group(name='monitor')
-# @bot.group(name='commands', description='Commands group')
-# async def commands_group(ctx):
-#     # If no subcommand is invoked, this will be run. 
-#     if ctx.invoked_subcommand is None:
-#         await await ctx.respond('You have called a group command')
-
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -30,14 +64,12 @@ async def on_ready():
 async def ping(ctx): 
     await ctx.respond("pong")
 
-
-
 @commands_group.command(description='Help Command')
 async def bothelp(ctx):
-    code_base_update = True if float(local_metadata["version"]["monitorizer"]) < float(
-        metadata_github["version"]["monitorizer"]) else False
-    toolkit_update = True if float(local_metadata["version"]["toolkit"]) < float(
-        metadata_github["version"]["toolkit"]) else False
+    code_base_update = True if float(local_metadata.get("version", {}).get("monitorizer", 0)) < float(
+        metadata_github.get("version", {}).get("monitorizer", 0)) else False
+    toolkit_update = True if float(local_metadata.get("version", {}).get("toolkit", 0)) < float(
+        metadata_github.get("version", {}).get("toolkit", 0)) else False
 
     if code_base_update == True and toolkit_update == False:
         await ctx.respond(templates.help_msg.replace("{warning1}\n", "").format(
@@ -91,7 +123,7 @@ async def remove(ctx, targets):
         watchlist.remove(target)
 
     rewrite_watchlist(watchlist)
-    await ctx.respond("Removed {} target(s) from watching list".format(len(args)))
+    await ctx.respond("Removed {} target(s) from watching list".format(len(targets)))
 
 @commands_group.command(description='List Targets Command')
 async def ls(ctx): 
@@ -150,4 +182,3 @@ async def acunetix(ctx, new_status):
     if new_status[0] == 'disable':
         flags.acunetix = False
         await ctx.respond("Acunetix integration is disabled. no targets will be sent")
-
