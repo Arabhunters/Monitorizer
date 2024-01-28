@@ -24,7 +24,7 @@ class Events(Report, Console, DNS):
     def start_monitor(self):
         # await bot.bot.start(self.discord_token) #! IDLE problem
         Thread(target=bot.bot.run, args=(self.discord_token,)).start() # start commands bot        
-        self.info(f"Commands Bot & reporter bot Started")
+        self.info("Commands Bot & reporter bot Started")
 
     def discover(self, new_domains, report_name):
         new_domains_filtered = {
@@ -40,8 +40,10 @@ class Events(Report, Console, DNS):
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             future_to_domain = {
-                executor.submit(self.perform_scans, domain, new_domains_filtered[domain]): domain
-                for domain in new_domains_filtered.keys()
+                executor.submit(
+                    self.perform_scans, domain, new_domains_filtered[domain]
+                ): domain
+                for domain in new_domains_filtered
             }
 
             for future in concurrent.futures.as_completed(future_to_domain):
