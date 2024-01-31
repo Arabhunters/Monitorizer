@@ -54,6 +54,7 @@ try:
 
 except subprocess.CalledProcessError as e:
     # If either command fails, print an error message and exit with a non-zero status code
+    
     print(f"Error occurred: {e}")
     if e.stdout:
         print(f"Standard Output: {e.stdout.decode()}")

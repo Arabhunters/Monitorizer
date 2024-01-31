@@ -23,10 +23,12 @@ class Events(Report, Console, DNS):
 
     def start_monitor(self):
         # await bot.bot.start(self.discord_token) #! IDLE problem
-        Thread(target=bot.bot.run, args=(self.discord_token,)).start() # start commands bot        
+        Thread(target=bot.bot.run, args=(self.discord_token,)).start() # start commands bot   
+        Thread(target=self.start_reporter_thread, args=()).start() # start reporter bot     
         self.info("Commands Bot & reporter bot Started")
 
     def discover(self, new_domains, report_name):
+
         new_domains_filtered = {
             domain: foundby
             for domain, foundby in new_domains.items()
@@ -36,35 +38,46 @@ class Events(Report, Console, DNS):
         if not new_domains_filtered:
             return
 
-        msg = f"MonitorXYZ Report ::: {report_name}\n```\n"
+        msg = f"MonitorXYZ Report ::: {report_name}\n"
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             future_to_domain = {
-                executor.submit(
-                    self.perform_scans, domain, new_domains_filtered[domain]
-                ): domain
-                for domain in new_domains_filtered
+                executor.submit(self.masscan_and_report, domain, foundby): domain 
+                for domain, foundby in new_domains_filtered.items()
             }
 
+            results = []
             for future in concurrent.futures.as_completed(future_to_domain):
-                domain = future_to_domain[future]
                 try:
-                    scan_result = future.result()
-                    msg += scan_result + "\n"
+                    results.append(future.result())
                 except Exception as exc:
-                    print(f'{domain} generated an exception: {exc}')
+                    print(f'{future_to_domain[future]} generated an exception: {exc}')
 
+            msg += '```\n' + '\n'.join(results) + '\n```'
+            self.send_discord_report(msg)
+    def discover(self, new_domains, report_name):
+        new_domains_filtered = {
+            domain: foundby
+            for domain, foundby in new_domains.items()
+            if not self.nxdomain(domain) or domain.strip() == ''
+        }
+        if not new_domains_filtered:
+            return
+
+        msg = f"MonitorXYZ Report ::: {report_name}\n"
+        msg += "```\n"
+        for domain, foundby in new_domains.items():
+            if flags.acunetix:
+                self.acunetix(domain)
+            ports = masscan(domain)
+            ports_count = len(ports.split(','))  # Splitting the ports string and counting
+
+            if ports_count > 10:
+                template = f"{domain} by: {', '.join(foundby)} - [Annoying - maybe WAF]"
+            else:
+                template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
+            template = f"{domain}  by: {', '.join(foundby)} ports: {ports}"
+            self.done(f"Discoverd: {template}")
+            msg += template + "\n"
         msg += "```"
         self.send_discord_report(msg)
-
-    def perform_scans(self, domain, foundby):
-        if flags.acunetix:
-            self.acunetix(domain)
-
-        ports = masscan(domain)  # Assuming masscan returns a string of ports
-        ports_count = len(ports.split(','))  # Count the ports
-
-        if ports_count > 10:
-            return f"{domain} by: {', '.join(foundby)} - [Annoying - maybe WAF]"
-        else:
-            return f"{domain} by: {', '.join(foundby)} ports: {ports}"
