@@ -32,12 +32,6 @@ def download_file(url, filename, target_dir):
     print(f"{filename} has been downloaded to {target_dir}")
     return file_path
 
-def set_executable_permission(file_path):
-    """Set executable permission for the given file."""
-    # Get the current permissions of the file
-    current_permissions = os.stat(file_path).st_mode
-    # Add the executable permission for the owner, group, and others
-    os.chmod(file_path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 def extract_zip(zip_path, target_dir, new_name=None):
     """Extract a zip file to a target directory and optionally rename the extracted file."""
@@ -50,7 +44,7 @@ def extract_zip(zip_path, target_dir, new_name=None):
                 old_file = os.path.join(target_dir, file)
                 new_file = os.path.join(target_dir, new_name)
                 os.rename(old_file, new_file)
-                set_executable_permission(new_file)
+                os.system(f"chmod +x {new_file}")
                 print(f"Renamed {file} to {new_name} and set it as executable.")
 
 def extract_tgz(tgz_path, target_dir, new_name=None):
@@ -63,14 +57,14 @@ def extract_tgz(tgz_path, target_dir, new_name=None):
                     old_file = os.path.join(target_dir, member.name)
                     new_file = os.path.join(target_dir, new_name)
                     os.rename(old_file, new_file)
-                    set_executable_permission(new_file)
+                    os.system(f"chmod +x {new_file}")
                     print(f"Renamed {member.name} to {new_name} and set it as executable.")
         else:
             # If no renaming is necessary, just set the files as executable
             for member in tar.getmembers():
                 if member.isfile():
                     file_path = os.path.join(target_dir, member.name)
-                    set_executable_permission(file_path)
+                    os.system(f"chmod +x {file_path}")
     print(f"Extracted {tgz_path} to {target_dir}{f' and renamed to {new_name}' if new_name else ''}.")
 
 
@@ -96,6 +90,7 @@ def check_and_download(repo, asset_name_pattern, target_dir, post_process=None, 
             with open(local_version_file, 'w') as file:
                 file.write(version)
             print(f"Updated {filename} to version {version} in {target_dir}")
+            os.system(f"chmod +x {file_path}")
 
 def main():
     repositories = [
