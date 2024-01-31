@@ -79,12 +79,10 @@ nuclei.start_continuous_scanner()
 subdominator.start_continuous_scanner()
 fuzzing.start_continuous_scanner()
 events.start_monitor()
-def pull_updates():
-    os.system('cd ./thirdparty/Fresh-Resolvers/ && git pull >/dev/null 2>&1')
+
 
 def continuous_scan():
     while True:
-        pull_updates()
         for target in _watch_list:
             if not target:
                 continue
