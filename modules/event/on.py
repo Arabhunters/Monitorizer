@@ -39,7 +39,7 @@ class Events(Report, Console, DNS):
 
         msg = f"MonitorXYZ Report ::: {report_name}\n```\n"
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             future_to_domain = {
                 executor.submit(
                     self.perform_scans, domain, new_domains_filtered[domain]
