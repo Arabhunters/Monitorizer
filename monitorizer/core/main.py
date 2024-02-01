@@ -102,8 +102,7 @@ class Monitorizer(ScanParser, Console):
 
     def set_permissions(self):
         for tool in self.chmod_tools:
-            st = os.stat(tool)
-            os.chmod(tool, st.st_mode | stat.S_IEXEC)
+            os.system(f"chmod +x {tool}")
             self.log(f"Changed permissions of {tool}")
 
     def run_and_return_output(self, cmd, output, silent=0):
