@@ -40,7 +40,7 @@ class NucleiFuzzing(Report, Monitorizer, Console):
         #? self.write_to_file(combined_waymore_output_for_nuclei_fuzzing, "\n".join(subdomains))
         
 
-        cmd = f"./thidrparty/nuclei/nuclei -l {combined_waymore_output_for_nuclei_fuzzing} -no-color -silent -t ./modules/nuclei_fuzzing/fuzzing-templates/ -o {nuclei_fuzzing_output} {self.nuclei_fuzzing_options}"
+        cmd = f"./thirdparty/nuclei/nuclei -l {combined_waymore_output_for_nuclei_fuzzing} -no-color -silent -t ./modules/nuclei_fuzzing/fuzzing-templates/ -o {nuclei_fuzzing_output} {self.nuclei_fuzzing_options}"
         subprocess.check_output(cmd, shell=True)
 
         old_report = self.merge_reports("nuclei_fuzzing", exclude=[report_name])

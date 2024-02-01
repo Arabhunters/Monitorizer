@@ -88,7 +88,7 @@ class Subdominator(Report, Monitorizer, Console):
         open(subdominator_input, 'w').write("\n".join(resolved_subs))
 
 
-        cmd = f"./thirdparty/subdominator/subdominator -l {subdominator_input} -o {subdominator_output} {self.subdominator_options}"
+        cmd = f"./thirdparty/subdominator/Subdominator -l {subdominator_input} -o {subdominator_output} {self.subdominator_options}"
         subprocess.check_output(cmd, shell=True)
 
 

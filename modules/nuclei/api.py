@@ -87,7 +87,7 @@ class Nuclei(Report, Monitorizer, Console):
         open(nuclei_input, 'w').write("\n".join(resolved_subs))
 
 
-        cmd = f"./thidrparty/nuclei/nuclei -no-color -silent -t modules/nuclei/templates -l {nuclei_input} -o {nuclei_output} {self.nuclei_options}"
+        cmd = f"./thirdparty/nuclei/nuclei -no-color -silent -t modules/nuclei/templates -l {nuclei_input} -o {nuclei_output} {self.nuclei_options}"
         subprocess.check_output(cmd, shell=True)
 
 
