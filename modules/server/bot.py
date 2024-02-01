@@ -140,14 +140,13 @@ async def status(ctx):
 
 @commands_group.command(description='Send to Acuntix enable or disable')
 async def acunetix(ctx, new_status):
-    if len(new_status) == 0:
-        await ctx.respond("Acunetix integration is " + ("enabled" if flags.acunetix else "disabled"))
-
-    if new_status[0] == 'enable':
+    if new_status == 'enable':
         flags.acunetix = True
-        await ctx.respond("Acunetix integration is enabled. new targets will be sent automatically")
+        await ctx.respond("Acunetix integration is enabled. New targets will be sent automatically")
 
-    if new_status[0] == 'disable':
+    elif new_status == 'disable':
         flags.acunetix = False
-        await ctx.respond("Acunetix integration is disabled. no targets will be sent")
+        await ctx.respond("Acunetix integration is disabled. No targets will be sent")
 
+    else:
+        await ctx.respond(f"Acunetix integration is {'enabled' if flags.acunetix else 'disabled'}")
