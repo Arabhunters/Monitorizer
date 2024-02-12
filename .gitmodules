@@ -13,3 +13,6 @@
 [submodule "thirdparty/Fresh-Resolvers"]
 	path = thirdparty/Fresh-Resolvers
 	url = https://github.com/proabiral/Fresh-Resolvers
+[submodule "thirdparty/probable_subdomains"]
+	path = wordlists/probable_subdomains
+	url = https://github.com/zzzteph/probable_subdomains

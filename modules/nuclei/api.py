@@ -1,8 +1,9 @@
+import contextlib
 from modules.report.all import Report
 from monitorizer.core.main import Monitorizer
 from modules.server.utils import reload_watchlist
 from monitorizer.ui.cli import Console
-from modules.nuclei.templates import * 
+from modules.nuclei.templates import *
 from datetime import datetime
 from colorama import Fore
 import threading
@@ -21,17 +22,17 @@ class Nuclei(Report, Monitorizer, Console):
     
     def resolve(self, host):
         try:
-            url = f"https://{host}"
-            requests.get(url, verify=False, timeout=30)
-            return url
-        except:
-            try:
-                url = f"http://{host}"
-                requests.get(url, verify=False, timeout=30)
-                return url
-            except:
-                pass
+            return self.resolveworker('https://', host)
+        except Exception:
+            with contextlib.suppress(Exception):
+                return self.resolveworker('http://', host)
         return None
+
+    # TODO Rename this here and in `resolve`
+    def resolveworker(self, arg0, host):
+        url = f"{arg0}{host}"
+        requests.get(url, verify=False, timeout=10)
+        return url
 
     def same(self, line1, line2):
         if line1 == '' or line2 == '':

@@ -163,4 +163,4 @@ class AcunetixReport():
             acunetix.start_scan(target.strip())
             self.log(f"created new acunetix's scan target={target}")
         except Exception as e:
-            self.send_discord_report(f"acunetix integration had an error: {str(e)}")
+            self.log(f"acunetix integration had an error: {str(e)}")

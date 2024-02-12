@@ -194,7 +194,7 @@ class Monitorizer(ScanParser, Console):
 
         try:
             return timed_scan(target, tool_name)
-        except:
+        except Exception:
             self.error(
                 f"Maximum execution time of {self.scan_timeout} second(s) reached while running {tool_name} on {target}")
             cmd, output = self.fmt_cmd(tool_name, target)
